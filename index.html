@@ -2,233 +2,344 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Employee Attendance</title>
+<title>Employee Attendance App</title>
 
 <style>
 
 body{
-font-family: Arial;
-background:#f5f6fa;
+font-family:Arial;
+background:#f1f3f8;
 margin:0;
-padding:20px;
+}
+
+header{
+background:#2f80ed;
+color:white;
+padding:15px;
+text-align:center;
+font-size:20px;
 }
 
 .container{
-max-width:500px;
-margin:auto;
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+padding:15px;
 }
 
-h2{
-text-align:center;
+.card{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 button{
 width:100%;
 padding:12px;
-margin-top:10px;
 border:none;
-border-radius:6px;
+border-radius:8px;
+margin-top:10px;
+font-size:16px;
 background:#2f80ed;
 color:white;
-font-size:16px;
 }
 
-button:hover{
-background:#1366d6;
+button.secondary{
+background:#27ae60;
 }
 
-input,select{
+button.danger{
+background:#eb5757;
+}
+
+input,select,textarea{
 width:100%;
 padding:10px;
-margin-top:10px;
-border:1px solid #ccc;
-border-radius:6px;
-}
-
-video,canvas{
-width:100%;
 margin-top:10px;
 border-radius:8px;
+border:1px solid #ccc;
 }
 
-.status{
-background:#eef2ff;
+.profile{
+display:flex;
+align-items:center;
+}
+
+.profile img{
+width:60px;
+height:60px;
+border-radius:50%;
+margin-right:10px;
+}
+
+.hidden{
+display:none;
+}
+
+nav{
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:space-around;
 padding:10px;
-margin-top:10px;
+box-shadow:0 -3px 8px rgba(0,0,0,0.1);
+}
+
+nav button{
+width:auto;
+padding:8px 15px;
+font-size:14px;
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:5px;
+}
+
+.calendar div{
+background:#e9edf7;
+padding:10px;
+text-align:center;
 border-radius:6px;
 }
 
 </style>
-
 </head>
+
 <body>
+
+<header>Employee Attendance</header>
 
 <div class="container">
 
-<h2>Employee Attendance</h2>
+<!-- LOGIN -->
+
+<div id="loginPage" class="card">
+
+<h3>Login</h3>
 
 <input id="empId" placeholder="Employee ID">
 
-<div class="status" id="locationStatus">Location: Not Captured</div>
+<input type="password" id="password" placeholder="Password">
 
-<video id="video" autoplay></video>
-<canvas id="canvas" style="display:none;"></canvas>
-
-<button onclick="captureSelfie()">Capture Selfie</button>
-
-<button onclick="getLocation()">Get Location</button>
-
-<button onclick="checkIn()">Check In</button>
-
-<button onclick="checkOut()">Check Out</button>
-
-<hr>
-
-<h3>Apply Leave</h3>
-
-<select id="leaveType">
-<option>Sick Leave</option>
-<option>Casual Leave</option>
-<option>Paid Leave</option>
-</select>
-
-<input type="date" id="leaveFrom">
-<input type="date" id="leaveTo">
-
-<button onclick="applyLeave()">Apply Leave</button>
-
-<hr>
-
-<h3>Holiday List</h3>
-
-<div id="holidayList"></div>
+<button onclick="login()">Login</button>
 
 </div>
 
+
+<!-- PROFILE PAGE -->
+
+<div id="profilePage" class="hidden">
+
+<div class="card profile">
+
+<img id="profilePic" src="https://via.placeholder.com/60">
+
+<div>
+<div id="empName">Employee</div>
+<div>ID: <span id="empDisplay"></span></div>
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Today's Attendance</h3>
+
+<div id="status">Not Checked In</div>
+
+<button id="checkInBtn" onclick="checkIn()">Check In</button>
+
+<button id="checkOutBtn" class="secondary hidden" onclick="checkOut()">Check Out</button>
+
+<select id="specialDay">
+<option value="">Normal Day</option>
+<option value="holiday">Holiday</option>
+<option value="leave">Leave</option>
+<option value="weekoff">Week Off</option>
+</select>
+
+</div>
+
+
+<div class="card">
+
+<h3>Attendance Calendar</h3>
+
+<div class="calendar" id="calendar"></div>
+
+</div>
+
+</div>
+
+
+
+<!-- LEAVE PAGE -->
+
+<div id="leavePage" class="hidden">
+
+<div class="card">
+
+<h3>Apply Leave</h3>
+
+<input type="date" id="leaveFrom">
+
+<input type="date" id="leaveTo">
+
+<textarea id="leaveReason" placeholder="Reason for leave"></textarea>
+
+<button onclick="applyLeave()">Submit Leave</button>
+
+</div>
+
+</div>
+
+
+
+<!-- SETTINGS -->
+
+<div id="settingsPage" class="hidden">
+
+<div class="card">
+
+<h3>Password Reset</h3>
+
+<input type="password" placeholder="New Password" id="newPass">
+
+<button onclick="requestReset()">Request Reset</button>
+
+<p>Reset must be approved by admin.</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<nav class="hidden" id="navBar">
+
+<button onclick="showPage('profile')">Home</button>
+
+<button onclick="showPage('leave')">Leave</button>
+
+<button onclick="showPage('settings')">Settings</button>
+
+</nav>
+
+
 <script>
 
-const SCRIPT_URL = "PASTE_APPS_SCRIPT_WEB_APP_URL_HERE";
+let emp="";
 
-let latitude="";
-let longitude="";
-let selfieData="";
+function login(){
 
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{
-document.getElementById("video").srcObject=stream;
-});
+emp=document.getElementById("empId").value;
 
-function captureSelfie(){
+document.getElementById("loginPage").style.display="none";
+document.getElementById("profilePage").classList.remove("hidden");
+document.getElementById("navBar").classList.remove("hidden");
 
-let video=document.getElementById("video");
-let canvas=document.getElementById("canvas");
+document.getElementById("empDisplay").innerText=emp;
 
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-
-let ctx=canvas.getContext("2d");
-ctx.drawImage(video,0,0);
-
-selfieData=canvas.toDataURL("image/jpeg");
-
-alert("Selfie Captured");
+loadCalendar();
 
 }
 
-function getLocation(){
 
-navigator.geolocation.getCurrentPosition(pos=>{
+function showPage(p){
 
-latitude=pos.coords.latitude;
-longitude=pos.coords.longitude;
+document.getElementById("profilePage").classList.add("hidden");
+document.getElementById("leavePage").classList.add("hidden");
+document.getElementById("settingsPage").classList.add("hidden");
 
-document.getElementById("locationStatus").innerHTML=
-"Location: "+latitude+" , "+longitude;
-
-});
+if(p=="profile")document.getElementById("profilePage").classList.remove("hidden");
+if(p=="leave")document.getElementById("leavePage").classList.remove("hidden");
+if(p=="settings")document.getElementById("settingsPage").classList.remove("hidden");
 
 }
+
 
 function checkIn(){
 
-let emp=document.getElementById("empId").value;
+let special=document.getElementById("specialDay").value;
 
-fetch(SCRIPT_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"checkin",
-employee:emp,
-lat:latitude,
-lng:longitude,
-selfie:selfieData
-})
-})
-.then(r=>r.text())
-.then(d=>alert(d));
+if(special!=""){
+
+alert("Marked as "+special);
+return;
 
 }
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
+
+alert("Check In Recorded");
+
+document.getElementById("status").innerText="Checked In";
+
+document.getElementById("checkInBtn").classList.add("hidden");
+
+document.getElementById("checkOutBtn").classList.remove("hidden");
+
+});
+
+});
+
+}
+
 
 function checkOut(){
 
-let emp=document.getElementById("empId").value;
+navigator.geolocation.getCurrentPosition(pos=>{
 
-fetch(SCRIPT_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"checkout",
-employee:emp,
-lat:latitude,
-lng:longitude,
-selfie:selfieData
-})
-})
-.then(r=>r.text())
-.then(d=>alert(d));
+navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
+
+alert("Check Out Recorded");
+
+document.getElementById("status").innerText="Completed";
+
+document.getElementById("checkOutBtn").classList.add("hidden");
+
+});
+
+});
 
 }
+
 
 function applyLeave(){
 
-let emp=document.getElementById("empId").value;
-
-fetch(SCRIPT_URL,{
-method:"POST",
-body:JSON.stringify({
-action:"leave",
-employee:emp,
-type:document.getElementById("leaveType").value,
-from:document.getElementById("leaveFrom").value,
-to:document.getElementById("leaveTo").value
-})
-})
-.then(r=>r.text())
-.then(d=>alert(d));
+alert("Leave request sent");
 
 }
 
-function loadHolidays(){
 
-fetch(SCRIPT_URL+"?action=holidays")
-.then(r=>r.json())
-.then(data=>{
+function requestReset(){
 
-let html="";
-
-data.forEach(h=>{
-html+=`<div class="status">${h.date} - ${h.name}</div>`;
-});
-
-document.getElementById("holidayList").innerHTML=html;
-
-});
+alert("Password reset request sent to admin");
 
 }
 
-loadHolidays();
+
+function loadCalendar(){
+
+let cal=document.getElementById("calendar");
+
+for(let i=1;i<=30;i++){
+
+let d=document.createElement("div");
+
+d.innerText=i;
+
+cal.appendChild(d);
+
+}
+
+}
 
 </script>
 
