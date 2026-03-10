@@ -2,19 +2,18 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>HR Attendance System</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f2f4f8;
+background:#f4f6fb;
 margin:0;
 }
 
 header{
-background:#2F80ED;
+background:#2f80ed;
 color:white;
 padding:15px;
 text-align:center;
@@ -23,20 +22,15 @@ font-size:20px;
 
 .container{
 padding:15px;
-padding-bottom:90px;
+padding-bottom:80px;
 }
 
 .card{
 background:white;
-border-radius:14px;
 padding:15px;
+border-radius:12px;
 margin-bottom:15px;
-box-shadow:0 6px 14px rgba(0,0,0,0.08);
-transition:0.3s;
-}
-
-.card:hover{
-transform:translateY(-3px);
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 .profile{
@@ -48,7 +42,7 @@ align-items:center;
 width:70px;
 height:70px;
 border-radius:50%;
-margin-right:12px;
+margin-right:10px;
 object-fit:cover;
 }
 
@@ -58,47 +52,35 @@ padding:12px;
 border:none;
 border-radius:8px;
 margin-top:10px;
-font-size:15px;
-background:#2F80ED;
+background:#2f80ed;
 color:white;
+font-size:15px;
 }
 
-button.green{
-background:#27AE60;
-}
+button.green{background:#27ae60}
+button.red{background:#eb5757}
 
-button.red{
-background:#EB5757;
-}
-
-input,select,textarea{
+input,textarea{
 width:100%;
 padding:10px;
 margin-top:10px;
 border-radius:8px;
-border:1px solid #ddd;
+border:1px solid #ccc;
+}
+
+.hidden{
+display:none;
 }
 
 nav{
 position:fixed;
 bottom:0;
-background:white;
 width:100%;
+background:white;
 display:flex;
 justify-content:space-around;
 padding:10px;
-box-shadow:0 -3px 10px rgba(0,0,0,0.1);
-}
-
-nav button{
-background:none;
-color:#444;
-font-size:14px;
-width:auto;
-}
-
-.hidden{
-display:none;
+box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 }
 
 .calendar{
@@ -112,21 +94,23 @@ padding:10px;
 border-radius:6px;
 text-align:center;
 font-size:13px;
+cursor:pointer;
 }
 
-.present{background:#c8f7c5;}
-.absent{background:#ffd6d6;}
-.leave{background:#ffe7b3;}
-.weekoff{background:#dfe6ff;}
+.present{background:#b7f5b7}
+.absent{background:#ffb3b3}
+.leave{background:#ffd18c}
+.weekoff{background:#d3b7ff}
+.holiday{background:#a8d0ff}
 
-.adminTable{
+table{
 width:100%;
 border-collapse:collapse;
 }
 
-.adminTable th, .adminTable td{
+td,th{
 border:1px solid #ddd;
-padding:8px;
+padding:6px;
 font-size:13px;
 }
 
@@ -143,13 +127,15 @@ font-size:13px;
 
 <div id="loginCard" class="card">
 
-<h3>Employee Login</h3>
+<h3>Login</h3>
 
-<input id="loginID" placeholder="Employee ID">
+<input id="username" placeholder="Username">
 
-<input type="password" id="loginPass" placeholder="Password">
+<input type="password" id="password" placeholder="Password">
 
 <button onclick="login()">Login</button>
+
+<div id="loginError" style="color:red"></div>
 
 </div>
 
@@ -163,9 +149,11 @@ font-size:13px;
 <img id="profilePhoto" src="https://via.placeholder.com/70">
 
 <div>
-<b id="empName">Employee</b>
+<b id="empName"></b>
 <br>
 ID: <span id="empID"></span>
+<br>
+<span id="empDesignation"></span>
 </div>
 
 </div>
@@ -176,6 +164,7 @@ ID: <span id="empID"></span>
 
 </div>
 
+
 <div class="card">
 
 <h3>Today's Attendance</h3>
@@ -185,15 +174,6 @@ ID: <span id="empID"></span>
 <button id="checkinBtn" onclick="checkIn()">Check In</button>
 
 <button id="checkoutBtn" class="red hidden" onclick="checkOut()">Check Out</button>
-
-<select id="specialDay">
-
-<option value="">Normal Day</option>
-<option value="leave">Leave</option>
-<option value="holiday">Holiday</option>
-<option value="weekoff">Week Off</option>
-
-</select>
 
 </div>
 
@@ -209,7 +189,7 @@ ID: <span id="empID"></span>
 </div>
 
 
-<!-- LEAVE PAGE -->
+<!-- LEAVE -->
 
 <div id="leavePage" class="hidden">
 
@@ -223,14 +203,33 @@ ID: <span id="empID"></span>
 
 <textarea id="leaveReason" placeholder="Reason"></textarea>
 
-<button onclick="applyLeave()">Submit</button>
+<button onclick="applyLeave()">Submit Leave</button>
 
 </div>
 
 </div>
 
 
-<!-- ADMIN PAGE -->
+<!-- REGULARISATION -->
+
+<div id="regularPage" class="hidden">
+
+<div class="card">
+
+<h3>Attendance Regularisation</h3>
+
+<input type="date" id="regDate">
+
+<textarea id="regReason" placeholder="Reason"></textarea>
+
+<button onclick="requestRegularisation()">Submit</button>
+
+</div>
+
+</div>
+
+
+<!-- ADMIN -->
 
 <div id="adminPage" class="hidden">
 
@@ -238,13 +237,13 @@ ID: <span id="empID"></span>
 
 <h3>Employee List</h3>
 
-<table class="adminTable">
+<table>
 
 <thead>
 <tr>
 <th>ID</th>
 <th>Name</th>
-<th>Status</th>
+<th>Designation</th>
 </tr>
 </thead>
 
@@ -259,7 +258,7 @@ ID: <span id="empID"></span>
 
 <h3>Attendance Report</h3>
 
-<table class="adminTable">
+<table>
 
 <thead>
 <tr>
@@ -287,30 +286,57 @@ ID: <span id="empID"></span>
 
 <button onclick="showPage('leave')">Leave</button>
 
+<button onclick="showPage('regular')">Regularise</button>
+
 <button onclick="showPage('admin')">Admin</button>
 
 </nav>
 
 
+
 <script>
 
-const SCRIPT_URL="PASTE_GOOGLE_APPS_SCRIPT_WEBAPP_URL";
+const SCRIPT_URL="PASTE_YOUR_APPS_SCRIPT_WEBAPP_URL";
 
-let emp="";
+let employeeID="";
 
 function login(){
 
-emp=document.getElementById("loginID").value;
+let username=document.getElementById("username").value;
+let password=document.getElementById("password").value;
 
-document.getElementById("empID").innerText=emp;
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"login",
+username:username,
+password:password
+})
+})
+.then(r=>r.json())
+.then(data=>{
+
+if(data.success){
+
+employeeID=data.id;
+
+document.getElementById("empID").innerText=data.id;
+document.getElementById("empName").innerText=data.name;
+document.getElementById("empDesignation").innerText=data.designation;
 
 document.getElementById("loginCard").style.display="none";
-
 document.getElementById("profilePage").classList.remove("hidden");
-
 document.getElementById("navBar").classList.remove("hidden");
 
-generateCalendar();
+loadCalendar();
+
+}else{
+
+document.getElementById("loginError").innerText="Invalid Login";
+
+}
+
+});
 
 }
 
@@ -319,50 +345,45 @@ function showPage(p){
 
 document.getElementById("profilePage").classList.add("hidden");
 document.getElementById("leavePage").classList.add("hidden");
+document.getElementById("regularPage").classList.add("hidden");
 document.getElementById("adminPage").classList.add("hidden");
 
 if(p=="profile")document.getElementById("profilePage").classList.remove("hidden");
 if(p=="leave")document.getElementById("leavePage").classList.remove("hidden");
+if(p=="regular")document.getElementById("regularPage").classList.remove("hidden");
 if(p=="admin")document.getElementById("adminPage").classList.remove("hidden");
 
 }
 
 
-function uploadPhoto(e){
-
-let reader=new FileReader();
-
-reader.onload=function(){
-
-document.getElementById("profilePhoto").src=reader.result;
-
-};
-
-reader.readAsDataURL(e.target.files[0]);
-
-}
-
 
 function checkIn(){
 
-let special=document.getElementById("specialDay").value;
+navigator.geolocation.getCurrentPosition(function(pos){
 
-if(special!=""){
-alert("Marked "+special);
-return;
-}
-
-navigator.geolocation.getCurrentPosition(pos=>{
+let location=pos.coords.latitude+","+pos.coords.longitude;
 
 navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
 
-alert("Check In Recorded");
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"checkin",
+employee:employeeID,
+location:location
+})
+})
+.then(r=>r.text())
+.then(d=>{
+
+alert(d);
 
 document.getElementById("attendanceStatus").innerText="Checked In";
 
 document.getElementById("checkinBtn").classList.add("hidden");
-
 document.getElementById("checkoutBtn").classList.remove("hidden");
+
+});
 
 });
 
@@ -373,54 +394,101 @@ document.getElementById("checkoutBtn").classList.remove("hidden");
 
 function checkOut(){
 
-navigator.geolocation.getCurrentPosition(pos=>{
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"checkout",
+employee:employeeID
+})
+})
+.then(r=>r.text())
+.then(d=>{
 
-navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
-
-alert("Check Out Recorded");
+alert(d);
 
 document.getElementById("attendanceStatus").innerText="Completed";
-
-document.getElementById("checkoutBtn").classList.add("hidden");
-
-});
 
 });
 
 }
+
 
 
 function applyLeave(){
 
-alert("Leave request submitted");
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"leave",
+employee:employeeID,
+from:document.getElementById("leaveFrom").value,
+to:document.getElementById("leaveTo").value,
+reason:document.getElementById("leaveReason").value
+})
+})
+.then(r=>r.text())
+.then(alert);
 
 }
 
 
-function generateCalendar(){
+function requestRegularisation(){
+
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"regularise",
+employee:employeeID,
+date:document.getElementById("regDate").value,
+reason:document.getElementById("regReason").value
+})
+})
+.then(r=>r.text())
+.then(alert);
+
+}
+
+
+
+function loadCalendar(){
+
+fetch(SCRIPT_URL+"?action=getAttendance&employee="+employeeID)
+.then(r=>r.json())
+.then(data=>{
 
 let cal=document.getElementById("calendar");
 
 cal.innerHTML="";
 
-for(let i=1;i<=30;i++){
+for(let i=1;i<=31;i++){
 
 let d=document.createElement("div");
 
 d.className="day";
 
-if(i%6==0)d.classList.add("leave");
-else if(i%5==0)d.classList.add("absent");
-else d.classList.add("present");
+let status=data[i];
+
+if(status=="Present")d.classList.add("present");
+if(status=="Absent")d.classList.add("absent");
+if(status=="Leave")d.classList.add("leave");
+if(status=="WeekOff")d.classList.add("weekoff");
+if(status=="Holiday")d.classList.add("holiday");
 
 d.innerText=i;
+
+d.onclick=function(){
+
+alert("Date: "+i+" Status: "+status);
+
+};
 
 cal.appendChild(d);
 
 }
 
-}
+});
 
+}
 
 </script>
 
