@@ -2,18 +2,19 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Employee Attendance App</title>
+
+<title>HR Attendance System</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f1f3f8;
+background:#f2f4f8;
 margin:0;
 }
 
 header{
-background:#2f80ed;
+background:#2F80ED;
 color:white;
 padding:15px;
 text-align:center;
@@ -22,41 +23,20 @@ font-size:20px;
 
 .container{
 padding:15px;
+padding-bottom:90px;
 }
 
 .card{
 background:white;
+border-radius:14px;
 padding:15px;
 margin-bottom:15px;
-border-radius:12px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
+box-shadow:0 6px 14px rgba(0,0,0,0.08);
+transition:0.3s;
 }
 
-button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:8px;
-margin-top:10px;
-font-size:16px;
-background:#2f80ed;
-color:white;
-}
-
-button.secondary{
-background:#27ae60;
-}
-
-button.danger{
-background:#eb5757;
-}
-
-input,select,textarea{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ccc;
+.card:hover{
+transform:translateY(-3px);
 }
 
 .profile{
@@ -65,44 +45,89 @@ align-items:center;
 }
 
 .profile img{
-width:60px;
-height:60px;
+width:70px;
+height:70px;
 border-radius:50%;
-margin-right:10px;
+margin-right:12px;
+object-fit:cover;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+margin-top:10px;
+font-size:15px;
+background:#2F80ED;
+color:white;
+}
+
+button.green{
+background:#27AE60;
+}
+
+button.red{
+background:#EB5757;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+nav{
+position:fixed;
+bottom:0;
+background:white;
+width:100%;
+display:flex;
+justify-content:space-around;
+padding:10px;
+box-shadow:0 -3px 10px rgba(0,0,0,0.1);
+}
+
+nav button{
+background:none;
+color:#444;
+font-size:14px;
+width:auto;
 }
 
 .hidden{
 display:none;
 }
 
-nav{
-position:fixed;
-bottom:0;
-width:100%;
-background:white;
-display:flex;
-justify-content:space-around;
-padding:10px;
-box-shadow:0 -3px 8px rgba(0,0,0,0.1);
-}
-
-nav button{
-width:auto;
-padding:8px 15px;
-font-size:14px;
-}
-
 .calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
-gap:5px;
+gap:6px;
 }
 
-.calendar div{
-background:#e9edf7;
+.day{
 padding:10px;
-text-align:center;
 border-radius:6px;
+text-align:center;
+font-size:13px;
+}
+
+.present{background:#c8f7c5;}
+.absent{background:#ffd6d6;}
+.leave{background:#ffe7b3;}
+.weekoff{background:#dfe6ff;}
+
+.adminTable{
+width:100%;
+border-collapse:collapse;
+}
+
+.adminTable th, .adminTable td{
+border:1px solid #ddd;
+padding:8px;
+font-size:13px;
 }
 
 </style>
@@ -110,37 +135,44 @@ border-radius:6px;
 
 <body>
 
-<header>Employee Attendance</header>
+<header>HR Attendance</header>
 
 <div class="container">
 
 <!-- LOGIN -->
 
-<div id="loginPage" class="card">
+<div id="loginCard" class="card">
 
-<h3>Login</h3>
+<h3>Employee Login</h3>
 
-<input id="empId" placeholder="Employee ID">
+<input id="loginID" placeholder="Employee ID">
 
-<input type="password" id="password" placeholder="Password">
+<input type="password" id="loginPass" placeholder="Password">
 
 <button onclick="login()">Login</button>
 
 </div>
 
 
-<!-- PROFILE PAGE -->
+<!-- PROFILE -->
 
 <div id="profilePage" class="hidden">
 
 <div class="card profile">
 
-<img id="profilePic" src="https://via.placeholder.com/60">
+<img id="profilePhoto" src="https://via.placeholder.com/70">
 
 <div>
-<div id="empName">Employee</div>
-<div>ID: <span id="empDisplay"></span></div>
+<b id="empName">Employee</b>
+<br>
+ID: <span id="empID"></span>
 </div>
+
+</div>
+
+<div class="card">
+
+<input type="file" onchange="uploadPhoto(event)">
 
 </div>
 
@@ -148,17 +180,19 @@ border-radius:6px;
 
 <h3>Today's Attendance</h3>
 
-<div id="status">Not Checked In</div>
+<div id="attendanceStatus">Not Checked In</div>
 
-<button id="checkInBtn" onclick="checkIn()">Check In</button>
+<button id="checkinBtn" onclick="checkIn()">Check In</button>
 
-<button id="checkOutBtn" class="secondary hidden" onclick="checkOut()">Check Out</button>
+<button id="checkoutBtn" class="red hidden" onclick="checkOut()">Check Out</button>
 
 <select id="specialDay">
+
 <option value="">Normal Day</option>
-<option value="holiday">Holiday</option>
 <option value="leave">Leave</option>
+<option value="holiday">Holiday</option>
 <option value="weekoff">Week Off</option>
+
 </select>
 
 </div>
@@ -168,12 +202,11 @@ border-radius:6px;
 
 <h3>Attendance Calendar</h3>
 
-<div class="calendar" id="calendar"></div>
+<div id="calendar" class="calendar"></div>
 
 </div>
 
 </div>
-
 
 
 <!-- LEAVE PAGE -->
@@ -188,29 +221,58 @@ border-radius:6px;
 
 <input type="date" id="leaveTo">
 
-<textarea id="leaveReason" placeholder="Reason for leave"></textarea>
+<textarea id="leaveReason" placeholder="Reason"></textarea>
 
-<button onclick="applyLeave()">Submit Leave</button>
-
-</div>
+<button onclick="applyLeave()">Submit</button>
 
 </div>
 
+</div>
 
 
-<!-- SETTINGS -->
+<!-- ADMIN PAGE -->
 
-<div id="settingsPage" class="hidden">
+<div id="adminPage" class="hidden">
 
 <div class="card">
 
-<h3>Password Reset</h3>
+<h3>Employee List</h3>
 
-<input type="password" placeholder="New Password" id="newPass">
+<table class="adminTable">
 
-<button onclick="requestReset()">Request Reset</button>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Status</th>
+</tr>
+</thead>
 
-<p>Reset must be approved by admin.</p>
+<tbody id="employeeTable"></tbody>
+
+</table>
+
+</div>
+
+
+<div class="card">
+
+<h3>Attendance Report</h3>
+
+<table class="adminTable">
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Present</th>
+<th>Leave</th>
+<th>Absent</th>
+</tr>
+</thead>
+
+<tbody id="reportTable"></tbody>
+
+</table>
 
 </div>
 
@@ -219,32 +281,36 @@ border-radius:6px;
 </div>
 
 
-<nav class="hidden" id="navBar">
+<nav id="navBar" class="hidden">
 
 <button onclick="showPage('profile')">Home</button>
 
 <button onclick="showPage('leave')">Leave</button>
 
-<button onclick="showPage('settings')">Settings</button>
+<button onclick="showPage('admin')">Admin</button>
 
 </nav>
 
 
 <script>
 
+const SCRIPT_URL="PASTE_GOOGLE_APPS_SCRIPT_WEBAPP_URL";
+
 let emp="";
 
 function login(){
 
-emp=document.getElementById("empId").value;
+emp=document.getElementById("loginID").value;
 
-document.getElementById("loginPage").style.display="none";
+document.getElementById("empID").innerText=emp;
+
+document.getElementById("loginCard").style.display="none";
+
 document.getElementById("profilePage").classList.remove("hidden");
+
 document.getElementById("navBar").classList.remove("hidden");
 
-document.getElementById("empDisplay").innerText=emp;
-
-loadCalendar();
+generateCalendar();
 
 }
 
@@ -253,11 +319,26 @@ function showPage(p){
 
 document.getElementById("profilePage").classList.add("hidden");
 document.getElementById("leavePage").classList.add("hidden");
-document.getElementById("settingsPage").classList.add("hidden");
+document.getElementById("adminPage").classList.add("hidden");
 
 if(p=="profile")document.getElementById("profilePage").classList.remove("hidden");
 if(p=="leave")document.getElementById("leavePage").classList.remove("hidden");
-if(p=="settings")document.getElementById("settingsPage").classList.remove("hidden");
+if(p=="admin")document.getElementById("adminPage").classList.remove("hidden");
+
+}
+
+
+function uploadPhoto(e){
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+document.getElementById("profilePhoto").src=reader.result;
+
+};
+
+reader.readAsDataURL(e.target.files[0]);
 
 }
 
@@ -267,10 +348,8 @@ function checkIn(){
 let special=document.getElementById("specialDay").value;
 
 if(special!=""){
-
-alert("Marked as "+special);
+alert("Marked "+special);
 return;
-
 }
 
 navigator.geolocation.getCurrentPosition(pos=>{
@@ -279,11 +358,11 @@ navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
 
 alert("Check In Recorded");
 
-document.getElementById("status").innerText="Checked In";
+document.getElementById("attendanceStatus").innerText="Checked In";
 
-document.getElementById("checkInBtn").classList.add("hidden");
+document.getElementById("checkinBtn").classList.add("hidden");
 
-document.getElementById("checkOutBtn").classList.remove("hidden");
+document.getElementById("checkoutBtn").classList.remove("hidden");
 
 });
 
@@ -300,9 +379,9 @@ navigator.mediaDevices.getUserMedia({video:true}).then(stream=>{
 
 alert("Check Out Recorded");
 
-document.getElementById("status").innerText="Completed";
+document.getElementById("attendanceStatus").innerText="Completed";
 
-document.getElementById("checkOutBtn").classList.add("hidden");
+document.getElementById("checkoutBtn").classList.add("hidden");
 
 });
 
@@ -313,25 +392,26 @@ document.getElementById("checkOutBtn").classList.add("hidden");
 
 function applyLeave(){
 
-alert("Leave request sent");
+alert("Leave request submitted");
 
 }
 
 
-function requestReset(){
-
-alert("Password reset request sent to admin");
-
-}
-
-
-function loadCalendar(){
+function generateCalendar(){
 
 let cal=document.getElementById("calendar");
+
+cal.innerHTML="";
 
 for(let i=1;i<=30;i++){
 
 let d=document.createElement("div");
+
+d.className="day";
+
+if(i%6==0)d.classList.add("leave");
+else if(i%5==0)d.classList.add("absent");
+else d.classList.add("present");
 
 d.innerText=i;
 
@@ -340,6 +420,7 @@ cal.appendChild(d);
 }
 
 }
+
 
 </script>
 
