@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Attendance</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f5f6fa;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:500px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:6px;
+background:#2f80ed;
+color:white;
+font-size:16px;
+}
+
+button:hover{
+background:#1366d6;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+video,canvas{
+width:100%;
+margin-top:10px;
+border-radius:8px;
+}
+
+.status{
+background:#eef2ff;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2>Employee Attendance</h2>
+
+<input id="empId" placeholder="Employee ID">
+
+<div class="status" id="locationStatus">Location: Not Captured</div>
+
+<video id="video" autoplay></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<button onclick="captureSelfie()">Capture Selfie</button>
+
+<button onclick="getLocation()">Get Location</button>
+
+<button onclick="checkIn()">Check In</button>
+
+<button onclick="checkOut()">Check Out</button>
+
+<hr>
+
+<h3>Apply Leave</h3>
+
+<select id="leaveType">
+<option>Sick Leave</option>
+<option>Casual Leave</option>
+<option>Paid Leave</option>
+</select>
+
+<input type="date" id="leaveFrom">
+<input type="date" id="leaveTo">
+
+<button onclick="applyLeave()">Apply Leave</button>
+
+<hr>
+
+<h3>Holiday List</h3>
+
+<div id="holidayList"></div>
+
+</div>
+
+<script>
+
+const SCRIPT_URL = "PASTE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+let latitude="";
+let longitude="";
+let selfieData="";
+
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+document.getElementById("video").srcObject=stream;
+});
+
+function captureSelfie(){
+
+let video=document.getElementById("video");
+let canvas=document.getElementById("canvas");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+let ctx=canvas.getContext("2d");
+ctx.drawImage(video,0,0);
+
+selfieData=canvas.toDataURL("image/jpeg");
+
+alert("Selfie Captured");
+
+}
+
+function getLocation(){
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+latitude=pos.coords.latitude;
+longitude=pos.coords.longitude;
+
+document.getElementById("locationStatus").innerHTML=
+"Location: "+latitude+" , "+longitude;
+
+});
+
+}
+
+function checkIn(){
+
+let emp=document.getElementById("empId").value;
+
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"checkin",
+employee:emp,
+lat:latitude,
+lng:longitude,
+selfie:selfieData
+})
+})
+.then(r=>r.text())
+.then(d=>alert(d));
+
+}
+
+function checkOut(){
+
+let emp=document.getElementById("empId").value;
+
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"checkout",
+employee:emp,
+lat:latitude,
+lng:longitude,
+selfie:selfieData
+})
+})
+.then(r=>r.text())
+.then(d=>alert(d));
+
+}
+
+function applyLeave(){
+
+let emp=document.getElementById("empId").value;
+
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"leave",
+employee:emp,
+type:document.getElementById("leaveType").value,
+from:document.getElementById("leaveFrom").value,
+to:document.getElementById("leaveTo").value
+})
+})
+.then(r=>r.text())
+.then(d=>alert(d));
+
+}
+
+function loadHolidays(){
+
+fetch(SCRIPT_URL+"?action=holidays")
+.then(r=>r.json())
+.then(data=>{
+
+let html="";
+
+data.forEach(h=>{
+html+=`<div class="status">${h.date} - ${h.name}</div>`;
+});
+
+document.getElementById("holidayList").innerHTML=html;
+
+});
+
+}
+
+loadHolidays();
+
+</script>
+
+</body>
+</html>
